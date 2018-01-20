@@ -1,18 +1,19 @@
-﻿using UniRx;
-using UnityEngine;
-using xPrefsTools;
+﻿using UnityEngine;
 using UnityEngine.UI;
 public class MenuBehaviour : MonoBehaviour
 {
     [Header("Panels")]
+    [SerializeField] private GameObject _Main;
     [SerializeField] private GameObject _Changer;
     [SerializeField] private GameObject _Settings;
 
-    [Header("Settings")]
+    [Header("Music Settings")]
     [SerializeField] private bool _Music;
     [SerializeField, Range(0.0f, 1.0f)] private float _MusicValue;
     [SerializeField] private Button _Btn_Music;
     [SerializeField] private Slider _Sld_Music;
+    [SerializeField] private Sprite _MusicOff;
+    [SerializeField] private Sprite _MusicOn;
 
     float MusicValue
     {
@@ -22,8 +23,9 @@ public class MenuBehaviour : MonoBehaviour
             if (_MusicValue != value)
             {
                 _MusicValue = Mathf.Clamp01(value);
-                Music = (_MusicValue <= 0.0f) ? false : true;
-                XPrefs.SetFloat("MusicValue", _MusicValue);
+                _Sld_Music.value = _MusicValue;
+                AudioManager.SetMusicVolume(_MusicValue);
+                PlayerPrefs.SetFloat("MusicValue", _MusicValue);
             }
         }
     }
@@ -36,16 +38,20 @@ public class MenuBehaviour : MonoBehaviour
             if (_Music != value)
             {
                 _Music = value;
-                XPrefs.SetBool("MusicToggle", _Music);
+                AudioManager.SetMuteMusic(value);
+                _Btn_Music.image.sprite = (value) ? _MusicOn : _MusicOff;
+                _Sld_Music.interactable = value;
+                PlayerPrefsHelper.SetBool("MusicBool", _Music);
             }
         }
     }
-
+    [Header("Sound Settings")]
     [SerializeField] private bool _Sound;
     [SerializeField, Range(0.0f, 1.0f)] private float _SoundValue;
     [SerializeField] private Button _Btn_Sound;
     [SerializeField] private Slider _Sld_Sound;
-
+    [SerializeField] private Sprite _SoundOff;
+    [SerializeField] private Sprite _SoundOn;
     float SoundValue
     {
         get { return _SoundValue; }
@@ -54,8 +60,9 @@ public class MenuBehaviour : MonoBehaviour
             if (_SoundValue != value)
             {
                 _SoundValue = Mathf.Clamp01(value);
-                Sound = (_SoundValue <= 0.0f) ? false : true;
-                XPrefs.SetFloat("SoundValue", _SoundValue);
+                _Sld_Sound.value = _SoundValue;
+                AudioManager.SetSoundVolume(_SoundValue);
+                PlayerPrefs.SetFloat("SoundValue", _SoundValue);
             }
         }
     }
@@ -68,22 +75,35 @@ public class MenuBehaviour : MonoBehaviour
             if (_Sound != value)
             {
                 _Sound = value;
-                XPrefs.SetBool("SoundToggle", _Sound);
+                AudioManager.SetMuteSound(value);
+                _Btn_Sound.image.sprite = (value) ? _SoundOn : _SoundOff;
+                _Sld_Sound.interactable = value;
+                PlayerPrefsHelper.SetBool("SoundBool", _Sound);
             }
         }
     }
 
     private void Awake()
     {
+        DontDestroyOnLoad(gameObject);
         Init();
     }
 
     void Init()
     {
-        Music = XPrefs.GetBool("MusicBool", 1);
+        Music = PlayerPrefsHelper.GetBool("MusicBool", true);
         MusicValue = PlayerPrefs.GetFloat("MusicValue", 1.0f);
-        Sound = XPrefs.GetBool("SoundBool", 1);
+
+        Sound = PlayerPrefsHelper.GetBool("SoundBool", true);
         SoundValue = PlayerPrefs.GetFloat("SoundValue", 1.0f);
+
+        if(_Settings.activeSelf) _Settings.SetActive(false);
+        if(_Changer.activeSelf) _Changer.SetActive(false);
+    }
+
+    private void Start()
+    {
+        AudioManager.SetMusicClip();
     }
 
     public void SetMusicValue()
