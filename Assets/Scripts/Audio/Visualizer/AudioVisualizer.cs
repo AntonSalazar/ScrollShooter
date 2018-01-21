@@ -4,7 +4,7 @@ using UnityEngine;
 public class AudioVisualizer : MonoBehaviour
 {
     [SerializeField, Range(64, 1024)] int _VisualizerSamples = 64;
-    [SerializeField] private Gradient _GradientColor;
+    
 
     [SerializeField] private float _Smoothes = 2.0f;
     [SerializeField] private float _RefValue = 0.1f;
@@ -12,28 +12,15 @@ public class AudioVisualizer : MonoBehaviour
     [SerializeField, ReadOnly] private float _RMSValue;
     [SerializeField, ReadOnly] private float _DBValue;
 
-    private float[] _SpectrumData;
-
+    private static float[] _SpectrumData;
     public static float _CurrentRate;
-    private static Gradient _Gradient;
-    private static Color _CurrentColor = new Color(0.0f, 0.0f, 0.0f);
-    
-    public static Color CurrentColor
-    {
-        get
-        {
-            _CurrentColor = _Gradient.Evaluate(_CurrentRate);
-            return _CurrentColor;
-        }
-    }
 
     private void Awake()
     {
-        _Gradient = _GradientColor;
         DontDestroyOnLoad(gameObject);
     }
 
-    void GetVolume()
+    private void GetVolume()
     {
         float _Sum = 0.0f;
         _SpectrumData = AudioListener.GetOutputData(_VisualizerSamples, 0);
@@ -54,5 +41,10 @@ public class AudioVisualizer : MonoBehaviour
         {
             GetVolume();
         }).AddTo(this);
+    }
+
+    public static float GetSample(int _index)
+    {
+        return _SpectrumData[_index];
     }
 }
